@@ -2,6 +2,8 @@ package spider
 
 import (
 	"Fachoi_fund_test2/parser"
+	"Fachoi_fund_test2/saver"
+	"database/sql"
 	"fmt"
 	"time"
 )
@@ -9,22 +11,24 @@ import (
 type FundListSpider struct {
 	*Spider
 	parser    *parser.FundListParser
+	saver     *saver.FundListSaver
 	fundCodes *[]string
 }
 
-func NewFundListSpider() *FundListSpider {
+func NewFundListSpider(db *sql.DB) *FundListSpider {
 	fls := new(FundListSpider)
 	fls.Spider = NewSpider(1)
 	fls.parser = parser.NewFundListParser()
+	fls.saver = saver.NewFundListSaver(db)
 	return fls
 }
 
 func (fls *FundListSpider) Run() {
-	rm := NewResourceManagerChan(fls.threadsNum)
+	rm := NewResourceManager(fls.threadsNum)
 	for {
 		url, ok := fls.scheduler.Pop()
 		if ok == false && rm.Has() == 0 {
-			fmt.Println("url爬取完毕")
+			fmt.Println("爬取完毕!")
 			break
 		} else if ok == false {
 			time.Sleep(time.Second)
@@ -46,8 +50,8 @@ func (fls *FundListSpider) process(url string) {
 		}
 		return
 	}
-	fls.parser.Parse(resp)
-
+	flms := fls.parser.Parse(resp)
+	fls.saver.Save(flms)
 }
 
 // 获取所有前端基金代号（后端基金跳过）

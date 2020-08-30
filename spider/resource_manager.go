@@ -1,30 +1,30 @@
 package spider
 
-type ResourceManagerChan struct {
+type ResourceManager struct {
 	tc chan uint8
 }
 
-func NewResourceManagerChan(num uint8) *ResourceManagerChan {
+func NewResourceManager(num uint8) *ResourceManager {
 	tc := make(chan uint8, num)
-	return &ResourceManagerChan{tc: tc}
+	return &ResourceManager{tc: tc}
 }
 
-func (r *ResourceManagerChan) GetOne() {
+func (r *ResourceManager) GetOne() {
 	r.tc <- 1
 }
 
-func (r *ResourceManagerChan) FreeOne() {
+func (r *ResourceManager) FreeOne() {
 	<-r.tc
 }
 
-func (r *ResourceManagerChan) Cap() int {
+func (r *ResourceManager) Cap() int {
 	return cap(r.tc)
 }
 
-func (r *ResourceManagerChan) Has() int {
+func (r *ResourceManager) Has() int {
 	return len(r.tc)
 }
 
-func (r *ResourceManagerChan) Remain() int {
+func (r *ResourceManager) Remain() int {
 	return cap(r.tc) - len(r.tc)
 }

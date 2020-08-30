@@ -24,11 +24,11 @@ func (fis *FundInfoSaver) Save(fim db_model.FundInfoModel) {
 		"fund_asset_size, fund_company, fund_trustee, fund_manager, " +
 		"fund_dividend_payment_per_unit, fund_dividend_count, fund_trade_state) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 	smtp, err := fis.db.Prepare(sqlStr)
-	util.CheckError(err, "SaveFundInfo mysqlDB.Prepare")
+	util.CheckError(err, "FundInfoSaver Save mysqlDB.Prepare")
 	_, err = smtp.Exec(fim.CodeFront, fim.CodeBack, fim.FullName, fim.ShortName, fim.FundType,
 		fim.IssueDate, fim.IssueDateString, fim.LaunchDate, fim.LaunchDateString,
 		fim.AssetSize, fim.Company, fim.Trustee, fim.Manager,
 		fim.DividendPaymentPerUnit, fim.DividendCount, fim.TradeState)
-	util.CheckError(err, "SaveFundInfo smtp.Exec")
+	util.CheckError(err, "FundInfoSaver Save smtp.Exec")
 	smtp.Close()
 }

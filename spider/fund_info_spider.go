@@ -15,7 +15,7 @@ type FundInfoSpider struct {
 	Count  int
 }
 
-func NewFundInfoSpider(threadsNum uint8, db *sql.DB) *FundInfoSpider {
+func NewFundInfoSpider(db *sql.DB, threadsNum uint8) *FundInfoSpider {
 	fis := new(FundInfoSpider)
 	fis.Spider = NewSpider(threadsNum)
 	fis.parser = parser.NewFundInfoParser()
@@ -25,10 +25,9 @@ func NewFundInfoSpider(threadsNum uint8, db *sql.DB) *FundInfoSpider {
 }
 
 func (fis *FundInfoSpider) Run() {
-	rm := NewResourceManagerChan(fis.threadsNum)
+	rm := NewResourceManager(fis.threadsNum)
 	for {
 		url, ok := fis.scheduler.Pop()
-
 		if ok == false && rm.Has() == 0 {
 			fmt.Println("url爬取完毕")
 			break
@@ -58,5 +57,6 @@ func (fis *FundInfoSpider) process(url string) {
 	//fis.parser.Parse(resp)
 
 	fim := fis.parser.Parse(resp)
+	//todo:这里用并发会导致数据还没存完主线程就已经结束，需要解决
 	go fis.saver.Save(fim)
 }
