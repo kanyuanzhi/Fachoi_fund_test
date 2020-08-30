@@ -44,16 +44,13 @@ func (s *Spider) Run() {
 			time.Sleep(time.Second)
 			continue
 		}
-
 		rm.GetOne()
 		go func(url string) {
 			defer rm.FreeOne()
 			s.Process(url)
 		}(url)
 	}
-
 }
 
 func (s *Spider) Process(url string) {
-
 }

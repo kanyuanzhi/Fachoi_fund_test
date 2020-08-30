@@ -33,6 +33,7 @@ func (qs *QueueScheduler) Pop() (string, bool) {
 	}
 	e := qs.queue.Front()
 	url := e.Value.(string)
+
 	key := md5.Sum([]byte(url))
 	delete(qs.listKey, key)
 	qs.queue.Remove(e)

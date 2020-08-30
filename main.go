@@ -1,24 +1,31 @@
 package main
 
 import (
-	"crypto/md5"
+	"Fachoi_fund_test2/db_mysql"
+	"Fachoi_fund_test2/spider"
 	"fmt"
+	"strings"
 )
 
 func main() {
-	fmt.Println("main")
+	mysqlDB := db_mysql.NewMysql()
+	mysqlDB.InitDatabase()
+	db := mysqlDB.GetDB()
+
 	url := "http://fund.eastmoney.com/js/fundcode_search.js"
-	key := md5.Sum([]byte(url))
-	fmt.Println(md5.Size)
-	fmt.Println(key)
-	fmt.Printf("%x\n", key)
+	fls := spider.NewFundListSpider()
+	fls.AddUrl(url)
+	fls.Run()
 
-	//c := crawler.NewCrawler()
-	//resp := c.Crawl(url)
-	//
-	//bodyBytes, _ := ioutil.ReadAll(resp.Body)
-	//bodyStr := string(bodyBytes)
+	fundCodes := fls.GetFundCodes()
 
-	fmt.Println([]byte(url))
-
+	var urls []string
+	for _, code := range fundCodes {
+		code = strings.ReplaceAll(code, " ", "")
+		url = fmt.Sprintf("http://fundf10.eastmoney.com/jbgk_%s.html", code)
+		urls = append(urls, url)
+	}
+	fis := spider.NewFundInfoSpider(20, db)
+	fis.AddUrls(urls)
+	fis.Run()
 }

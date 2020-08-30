@@ -2,6 +2,7 @@ package crawler
 
 import (
 	"crypto/md5"
+	"fmt"
 	"net/http"
 	"sync"
 )
@@ -30,7 +31,9 @@ func (c *Crawler) Crawl(url string) *http.Response {
 	req.Header.Add("User-Agent", userAgent)
 	req.Header.Add("Referer", referer)
 	resp, err := client.Do(req)
-
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 	c.locker.Lock()
 	if has, ok := c.crawled[key]; has && ok {
 		c.locker.Unlock()
@@ -38,6 +41,8 @@ func (c *Crawler) Crawl(url string) *http.Response {
 	}
 
 	if err != nil || resp.StatusCode != http.StatusOK {
+		fmt.Println(url)
+		fmt.Println(resp.StatusCode)
 		c.crawled[key] = false
 		c.locker.Unlock()
 		return nil
