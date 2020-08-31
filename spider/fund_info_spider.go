@@ -1,7 +1,9 @@
 package spider
 
 import (
+	"Fachoi_fund_test2/db_model"
 	"Fachoi_fund_test2/parser"
+	"Fachoi_fund_test2/resource_manager"
 	"Fachoi_fund_test2/saver"
 	"database/sql"
 	"fmt"
@@ -12,51 +14,63 @@ type FundInfoSpider struct {
 	*Spider
 	parser *parser.FundInfoParser
 	saver  *saver.FundInfoSaver
-	Count  int
 }
 
-func NewFundInfoSpider(db *sql.DB, threadsNum uint8) *FundInfoSpider {
+func NewFundInfoSpider(db *sql.DB, threadsNum int) *FundInfoSpider {
 	fis := new(FundInfoSpider)
 	fis.Spider = NewSpider(threadsNum)
 	fis.parser = parser.NewFundInfoParser()
 	fis.saver = saver.NewFundInfoSaver(db)
-	fis.Count = 1
 	return fis
 }
 
 func (fis *FundInfoSpider) Run() {
-	rm := NewResourceManager(fis.threadsNum)
+	crm := resource_manager.NewCrawlerResourceManager(fis.threadsNum)
+	srm := resource_manager.NewSaverResourceManager(fis.urlsNum)
+	srm.FillToTheFull()
+	dataChan := make(chan db_model.FundInfoModel, 1000)
+	crawlFinished := false
 	for {
 		url, ok := fis.scheduler.Pop()
-		if ok == false && rm.Has() == 0 {
-			fmt.Println("url爬取完毕")
-			break
+		if crawlFinished == false && ok == false && crm.Has() == 0 {
+			fmt.Println("基金信息爬取完毕！等待存储完毕......")
+			crawlFinished = true
 		} else if ok == false {
 			time.Sleep(time.Second)
 			continue
 		}
-		rm.GetOne()
-		go func(url string) {
-			defer rm.FreeOne()
-			fis.process(url)
-			fis.Count++
-			fmt.Println("FundInfoSpider: ", fis.Count)
-		}(url)
+		if crawlFinished && srm.Has() == 0 {
+			fmt.Println("基金信息存储完毕！")
+			break
+		}
+		crm.GetOne()
+
+		// 并发爬取并解析页面
+		go func(url string, dataChan chan db_model.FundInfoModel) {
+			defer crm.FreeOne()
+			fis.process(url, dataChan)
+			fis.crawlCount <- 1
+			fmt.Printf("爬取进度：%d / %d \n", len(fis.crawlCount), fis.urlsNum)
+		}(url, dataChan)
+
+		// 并发存储数据
+		go func(dataChan chan db_model.FundInfoModel) {
+			defer srm.FreeOne()
+			fis.saver.Save(<-dataChan)
+			fis.saveCount <- 1
+			fmt.Printf("存储进度：%d / %d \n", len(fis.saveCount), fis.urlsNum)
+		}(dataChan)
 	}
 }
 
-func (fis *FundInfoSpider) process(url string) {
-
+func (fis *FundInfoSpider) process(url string, dataChan chan db_model.FundInfoModel) {
 	resp := fis.crawler.Crawl(url)
 	if resp == nil {
 		if !fis.crawler.UrlVisited(url) {
 			fis.scheduler.Push(url)
 		}
+		<-fis.crawlCount
 		return
 	}
-	//fis.parser.Parse(resp)
-
-	fim := fis.parser.Parse(resp)
-	//todo:这里用并发会导致数据还没存完主线程就已经结束，需要解决
-	go fis.saver.Save(fim)
+	dataChan <- fis.parser.Parse(resp)
 }

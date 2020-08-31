@@ -33,7 +33,6 @@ func (qs *QueueScheduler) Pop() (string, bool) {
 	}
 	e := qs.queue.Front()
 	url := e.Value.(string)
-
 	key := md5.Sum([]byte(url))
 	delete(qs.listKey, key)
 	qs.queue.Remove(e)
@@ -51,4 +50,8 @@ func (qs *QueueScheduler) Push(url string) {
 	e := qs.queue.PushBack(url)
 	qs.listKey[key] = e
 	qs.locker.Unlock()
+}
+
+func (qs *QueueScheduler) getUrlsNum(url string) int {
+	return len(qs.listKey)
 }

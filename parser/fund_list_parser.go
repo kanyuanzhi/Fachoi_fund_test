@@ -8,12 +8,12 @@ import (
 )
 
 type FundListParser struct {
-	fundCodes []string
+	frontFundCodes []string
 }
 
 func NewFundListParser() *FundListParser {
 	return &FundListParser{
-		fundCodes: make([]string, 0),
+		frontFundCodes: make([]string, 0),
 	}
 }
 
@@ -37,7 +37,7 @@ func (flp *FundListParser) Parse(resp *http.Response) []db_model.FundListModel {
 		fundListData[i] = flm
 		// 后端基金跳过
 		if !strings.Contains(flm.ShortName, "后端") {
-			flp.fundCodes = append(flp.fundCodes, flm.Code)
+			flp.frontFundCodes = append(flp.frontFundCodes, flm.Code)
 		}
 
 	}
@@ -45,6 +45,6 @@ func (flp *FundListParser) Parse(resp *http.Response) []db_model.FundListModel {
 }
 
 // 获取所有前端基金代号（后端基金跳过）
-func (flp *FundListParser) GetFundCodes() []string {
-	return flp.fundCodes
+func (flp *FundListParser) GetFrontFundCodes() []string {
+	return flp.frontFundCodes
 }

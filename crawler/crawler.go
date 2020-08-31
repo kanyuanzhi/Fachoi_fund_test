@@ -41,8 +41,6 @@ func (c *Crawler) Crawl(url string) *http.Response {
 	}
 
 	if err != nil || resp.StatusCode != http.StatusOK {
-		fmt.Println(url)
-		fmt.Println(resp.StatusCode)
 		c.crawled[key] = false
 		c.locker.Unlock()
 		return nil
