@@ -31,9 +31,7 @@ func (c *Crawler) Crawl(url string) *http.Response {
 	req.Header.Add("User-Agent", userAgent)
 	req.Header.Add("Referer", referer)
 	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
+
 	c.locker.Lock()
 	if has, ok := c.crawled[key]; has && ok {
 		c.locker.Unlock()
@@ -41,6 +39,7 @@ func (c *Crawler) Crawl(url string) *http.Response {
 	}
 
 	if err != nil || resp.StatusCode != http.StatusOK {
+		fmt.Println("爬取链接失败：", url)
 		c.crawled[key] = false
 		c.locker.Unlock()
 		return nil

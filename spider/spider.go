@@ -6,14 +6,16 @@ import (
 )
 
 type Spider struct {
-	threadsNum int
-	urlsNum    int
-	scheduler  *scheduler.QueueScheduler
-	crawler    *crawler.Crawler
-	parser     interface{}
-	saver      interface{}
-	crawlCount chan int
-	saveCount  chan int
+	threadsNum int                       // 并发数
+	urlsNum    int                       // 需要爬取链接数
+	scheduler  *scheduler.QueueScheduler // 队列调度器，用于管理url
+	crawler    *crawler.Crawler          // 爬取器
+	crawlCount chan int                  // 爬取进度统计
+	saveCount  chan int                  // 存储进度统计
+	dataChan   chan interface{}          // 数据管道，用以将爬取器爬到并解析的内容传输至存储器
+	parser     interface{}               // 解析器，由继承类确定类型
+	saver      interface{}               // 存储器，由继承类确定类型
+
 }
 
 func NewSpider(threadsNum int) *Spider {

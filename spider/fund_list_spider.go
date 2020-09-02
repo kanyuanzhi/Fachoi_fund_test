@@ -11,8 +11,9 @@ import (
 
 type FundListSpider struct {
 	*Spider
-	parser *parser.FundListParser
-	saver  *saver.FundListSaver
+	parser   *parser.FundListParser
+	saver    *saver.FundListSaver
+	dataChan chan []db_model.FundListModel
 }
 
 func NewFundListSpider(db *sql.DB) *FundListSpider {
@@ -20,29 +21,29 @@ func NewFundListSpider(db *sql.DB) *FundListSpider {
 	fls.Spider = NewSpider(1)
 	fls.parser = parser.NewFundListParser()
 	fls.saver = saver.NewFundListSaver(db)
+	fls.dataChan = make(chan []db_model.FundListModel, 10)
 	return fls
 }
 
 func (fls *FundListSpider) Run() {
-	dataChan := make(chan []db_model.FundListModel, 10)
 	for {
 		url, ok := fls.scheduler.Pop()
-		if ok == false && len(dataChan) == 1 {
+		if ok == false && len(fls.dataChan) == 1 {
 			fmt.Println("基金列表爬取完毕！等待存储完毕......")
 			break
 		} else if ok == false {
 			time.Sleep(time.Second)
 			continue
 		}
-		fls.process(url, dataChan)
+		fls.process(url)
 	}
-	fls.saver.Save(<-dataChan)
-	close(dataChan)
+	fls.saver.Save(<-fls.dataChan)
+	close(fls.dataChan)
 	fmt.Println("基金列表存储完毕!")
 
 }
 
-func (fls *FundListSpider) process(url string, dataChan chan []db_model.FundListModel) {
+func (fls *FundListSpider) process(url string) {
 	resp := fls.crawler.Crawl(url)
 	if resp == nil {
 		if !fls.crawler.UrlVisited(url) {
@@ -50,7 +51,7 @@ func (fls *FundListSpider) process(url string, dataChan chan []db_model.FundList
 		}
 		return
 	}
-	dataChan <- fls.parser.Parse(resp)
+	fls.dataChan <- fls.parser.Parse(resp)
 }
 
 // 获取所有前端基金代号（后端基金跳过）

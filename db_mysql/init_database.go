@@ -55,9 +55,9 @@ func createConnection() *sql.DB {
 		panic("数据源配置不正确: " + err.Error())
 	}
 	// 最大连接数
-	db.SetMaxOpenConns(200)
+	db.SetMaxOpenConns(1000)
 	// 闲置连接数
-	db.SetMaxIdleConns(5)
+	db.SetMaxIdleConns(200)
 	// 最大连接周期
 	db.SetConnMaxLifetime(100 * time.Second)
 
@@ -102,6 +102,23 @@ func createFundInfoTable(db *sql.DB) {
 		"fund_dividend_payment_per_unit FLOAT," +
 		"fund_dividend_count INT," +
 		"fund_trade_state VARCHAR(50)" +
+		")"
+	_, err := db.Exec(sqlStr)
+	util.CheckError(err, "createFundInfoTable")
+}
+
+// 不在InitDatabase()中调用，在存储基金历史数据中调用
+func CreateFundHistoryTable(db *sql.DB, code string) {
+	tableName := "history_" + code + "_table"
+	sqlStr := "CREATE TABLE IF NOT EXISTS " + tableName + " (" +
+		"id INT auto_increment," +
+		"date BIGINT," +
+		"date_string VARCHAR(50)," +
+		"net_asset_value FLOAT, " +
+		"accumulated_net_asset_value FLOAT, " +
+		"earnings_per_10000 FLOAT, " +
+		"7_day_annual_return FLOAT, " +
+		"PRIMARY KEY (id)" +
 		")"
 	_, err := db.Exec(sqlStr)
 	util.CheckError(err, "createFundInfoTable")

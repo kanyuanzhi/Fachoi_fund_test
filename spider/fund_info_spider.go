@@ -12,8 +12,9 @@ import (
 
 type FundInfoSpider struct {
 	*Spider
-	parser *parser.FundInfoParser
-	saver  *saver.FundInfoSaver
+	parser   *parser.FundInfoParser
+	saver    *saver.FundInfoSaver
+	dataChan chan db_model.FundInfoModel
 }
 
 func NewFundInfoSpider(db *sql.DB, threadsNum int) *FundInfoSpider {
@@ -21,6 +22,7 @@ func NewFundInfoSpider(db *sql.DB, threadsNum int) *FundInfoSpider {
 	fis.Spider = NewSpider(threadsNum)
 	fis.parser = parser.NewFundInfoParser()
 	fis.saver = saver.NewFundInfoSaver(db)
+	fis.dataChan = make(chan db_model.FundInfoModel, 1000)
 	return fis
 }
 
@@ -28,14 +30,13 @@ func (fis *FundInfoSpider) Run() {
 	crm := resource_manager.NewCrawlerResourceManager(fis.threadsNum)
 	srm := resource_manager.NewSaverResourceManager(fis.urlsNum)
 	srm.FillToTheFull()
-	dataChan := make(chan db_model.FundInfoModel, 1000)
 	crawlFinished := false
 	for {
 		url, ok := fis.scheduler.Pop()
 		if crawlFinished == false && ok == false && crm.Has() == 0 {
 			fmt.Println("基金信息爬取完毕！等待存储完毕......")
 			crawlFinished = true
-		} else if ok == false {
+		} else if crawlFinished == false && ok == false {
 			time.Sleep(time.Second)
 			continue
 		}
@@ -44,26 +45,28 @@ func (fis *FundInfoSpider) Run() {
 			break
 		}
 		crm.GetOne()
-
 		// 并发爬取并解析页面
-		go func(url string, dataChan chan db_model.FundInfoModel) {
+		go func(url string, crawlFinished bool) {
 			defer crm.FreeOne()
-			fis.process(url, dataChan)
+			if crawlFinished {
+				return
+			}
+			fis.process(url)
 			fis.crawlCount <- 1
 			fmt.Printf("爬取进度：%d / %d \n", len(fis.crawlCount), fis.urlsNum)
-		}(url, dataChan)
+		}(url, crawlFinished)
 
 		// 并发存储数据
-		go func(dataChan chan db_model.FundInfoModel) {
+		go func() {
 			defer srm.FreeOne()
-			fis.saver.Save(<-dataChan)
+			fis.saver.Save(<-fis.dataChan)
 			fis.saveCount <- 1
 			fmt.Printf("存储进度：%d / %d \n", len(fis.saveCount), fis.urlsNum)
-		}(dataChan)
+		}()
 	}
 }
 
-func (fis *FundInfoSpider) process(url string, dataChan chan db_model.FundInfoModel) {
+func (fis *FundInfoSpider) process(url string) {
 	resp := fis.crawler.Crawl(url)
 	if resp == nil {
 		if !fis.crawler.UrlVisited(url) {
@@ -72,5 +75,5 @@ func (fis *FundInfoSpider) process(url string, dataChan chan db_model.FundInfoMo
 		<-fis.crawlCount
 		return
 	}
-	dataChan <- fis.parser.Parse(resp)
+	fis.dataChan <- fis.parser.Parse(resp)
 }

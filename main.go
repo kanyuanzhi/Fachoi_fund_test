@@ -19,15 +19,23 @@ func main() {
 	frontFundCodes := fls.GetFrontFundCodes()
 	fmt.Println(len(frontFundCodes))
 
-	var urls []string
+	var infoUrls, historyUrls []string
+	var infoUrl, historyUrl string
 	for _, code := range frontFundCodes {
 		//if i >= 10 {
 		//	break
 		//}
-		url = fmt.Sprintf("http://fundf10.eastmoney.com/jbgk_%s.html", code)
-		urls = append(urls, url)
+		infoUrl = fmt.Sprintf("http://fundf10.eastmoney.com/jbgk_%s.html", code)
+		historyUrl = fmt.Sprintf("http://api.fund.eastmoney.com/f10/lsjz?callback=jQuery18307693431530679145_1599054971353"+
+			"&fundCode=%s&pageIndex=1&pageSize=10000&startDate=&endDate=&_=1599054971372", code)
+		infoUrls = append(infoUrls, infoUrl)
+		historyUrls = append(historyUrls, historyUrl)
 	}
-	fis := spider.NewFundInfoSpider(db, 20)
-	fis.AddUrls(urls)
-	fis.Run()
+	//fis := spider.NewFundInfoSpider(db, 20)
+	//fis.AddUrls(infoUrls)
+	//fis.Run()
+
+	fhs := spider.NewFundHistorySpider(db, 5)
+	fhs.AddUrls(historyUrls)
+	fhs.Run()
 }
