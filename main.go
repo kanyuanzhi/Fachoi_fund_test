@@ -35,7 +35,7 @@ func main() {
 	//fis.AddUrls(infoUrls)
 	//fis.Run()
 
-	fhs := spider.NewFundHistorySpider(db, 5)
+	fhs := spider.NewFundHistorySpider(db, 20)
 	fhs.AddUrls(historyUrls)
 	fhs.Run()
 }

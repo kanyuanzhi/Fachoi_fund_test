@@ -11,6 +11,7 @@ type Spider struct {
 	scheduler  *scheduler.QueueScheduler // 队列调度器，用于管理url
 	crawler    *crawler.Crawler          // 爬取器
 	crawlCount chan int                  // 爬取进度统计
+	parseCount chan int                  // 解析进度统计
 	saveCount  chan int                  // 存储进度统计
 	dataChan   chan interface{}          // 数据管道，用以将爬取器爬到并解析的内容传输至存储器
 	parser     interface{}               // 解析器，由继承类确定类型
@@ -30,6 +31,7 @@ func NewSpider(threadsNum int) *Spider {
 func (s *Spider) AddUrl(url string) {
 	s.urlsNum += 1
 	s.crawlCount = make(chan int, s.urlsNum)
+	s.parseCount = make(chan int, s.urlsNum)
 	s.saveCount = make(chan int, s.urlsNum)
 	s.scheduler.Push(url)
 }
@@ -37,6 +39,7 @@ func (s *Spider) AddUrl(url string) {
 func (s *Spider) AddUrls(urls []string) {
 	s.urlsNum += len(urls)
 	s.crawlCount = make(chan int, s.urlsNum)
+	s.parseCount = make(chan int, s.urlsNum)
 	s.saveCount = make(chan int, s.urlsNum)
 	for _, url := range urls {
 		s.scheduler.Push(url)

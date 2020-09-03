@@ -18,7 +18,13 @@ func NewFundHistoryParser() *FundHistoryParser {
 }
 
 func (flp *FundHistoryParser) Parse(resp *http.Response) []db_model.FundHistoryModel {
+	defer resp.Body.Close()
+	//t1 := time.Now().Unix()
+	// 此步骤很耗时，长达4s
 	bodyBytes, _ := ioutil.ReadAll(resp.Body)
+	//bodyBytes, _ := io.Copy(resp.Body)
+	//t2 := time.Now().Unix()
+	//fmt.Println(t2 - t1)
 	bodyStr := string(bodyBytes)
 	bodyStr = strings.ReplaceAll(bodyStr, "jQuery183019601346852042933_1596811572354(", "")
 	bodyStr = strings.ReplaceAll(bodyStr, ")", "")
@@ -32,8 +38,8 @@ func (flp *FundHistoryParser) Parse(resp *http.Response) []db_model.FundHistoryM
 	} else {
 		isValueFlag = false
 	}
-
 	historyData := gjson.Get(bodyStr, "Data.LSJZList")
+
 	historyData.Raw = strings.ReplaceAll(historyData.Raw, "[", "")
 	historyData.Raw = strings.ReplaceAll(historyData.Raw, "]", "")
 	historyDataArray := strings.Split(historyData.Raw, "},{")
@@ -82,6 +88,5 @@ func (flp *FundHistoryParser) Parse(resp *http.Response) []db_model.FundHistoryM
 		var temp = []db_model.FundHistoryModel{fhm}
 		fhms = append(temp, fhms...) // 在切片头部插入
 	}
-
 	return fhms
 }

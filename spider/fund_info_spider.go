@@ -36,7 +36,7 @@ func (fis *FundInfoSpider) Run() {
 		if crawlFinished == false && ok == false && crm.Has() == 0 {
 			fmt.Println("基金信息爬取完毕！等待存储完毕......")
 			crawlFinished = true
-		} else if crawlFinished == false && ok == false {
+		} else if ok == false {
 			time.Sleep(time.Second)
 			continue
 		}
@@ -46,22 +46,23 @@ func (fis *FundInfoSpider) Run() {
 		}
 		crm.GetOne()
 		// 并发爬取并解析页面
-		go func(url string, crawlFinished bool) {
-			defer crm.FreeOne()
-			if crawlFinished {
-				return
-			}
+		go func(url string) {
+			defer func() {
+				crm.FreeOne()
+				fis.crawlCount <- 1
+				fmt.Printf("爬取进度：%d / %d \n", len(fis.crawlCount), fis.urlsNum)
+			}()
 			fis.process(url)
-			fis.crawlCount <- 1
-			fmt.Printf("爬取进度：%d / %d \n", len(fis.crawlCount), fis.urlsNum)
-		}(url, crawlFinished)
+		}(url)
 
 		// 并发存储数据
 		go func() {
-			defer srm.FreeOne()
+			defer func() {
+				srm.FreeOne()
+				fis.saveCount <- 1
+				fmt.Printf("存储进度：%d / %d \n", len(fis.saveCount), fis.urlsNum)
+			}()
 			fis.saver.Save(<-fis.dataChan)
-			fis.saveCount <- 1
-			fmt.Printf("存储进度：%d / %d \n", len(fis.saveCount), fis.urlsNum)
 		}()
 	}
 }
@@ -73,6 +74,7 @@ func (fis *FundInfoSpider) process(url string) {
 			fis.scheduler.Push(url)
 		}
 		<-fis.crawlCount
+		time.Sleep(time.Second * 5)
 		return
 	}
 	fis.dataChan <- fis.parser.Parse(resp)

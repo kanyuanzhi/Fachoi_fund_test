@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
+	"time"
 )
 
 type Crawler struct {
@@ -24,7 +25,10 @@ func NewCrawler() *Crawler {
 func (c *Crawler) Crawl(url string) *http.Response {
 	key := md5.Sum([]byte(url))
 
-	client := &http.Client{}
+	client := &http.Client{Timeout: time.Second * 4}
+	if client == nil {
+		return nil
+	}
 	req, _ := http.NewRequest("Get", url, nil)
 	userAgent := "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36"
 	referer := "http://fund.eastmoney.com/allfund.html"
