@@ -55,11 +55,11 @@ func createConnection() *sql.DB {
 		panic("数据源配置不正确: " + err.Error())
 	}
 	// 最大连接数
-	db.SetMaxOpenConns(1000)
+	db.SetMaxOpenConns(100)
 	// 闲置连接数
-	db.SetMaxIdleConns(200)
+	db.SetMaxIdleConns(5)
 	// 最大连接周期
-	db.SetConnMaxLifetime(100 * time.Second)
+	db.SetConnMaxLifetime(2 * time.Minute)
 
 	if err = db.Ping(); nil != err {
 		panic("数据库链接失败: " + err.Error())

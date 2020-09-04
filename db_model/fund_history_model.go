@@ -14,3 +14,10 @@ type FundHistoryModelAndCode struct {
 	Fhms []FundHistoryModel
 	Code string
 }
+
+func NewFundHistoryModelAndCode(Fhms []FundHistoryModel, Code string) *FundHistoryModelAndCode {
+	return &FundHistoryModelAndCode{
+		Fhms: Fhms,
+		Code: Code,
+	}
+}

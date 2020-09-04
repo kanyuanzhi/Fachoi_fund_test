@@ -1,6 +1,6 @@
 package resource_manager
 
-// 爬取资源管理器，用于控制并发爬取数量
+// 爬取器资源管理器，用于控制并发爬取数量
 type CrawlerResourceManager struct {
 	*ResourceManager
 }

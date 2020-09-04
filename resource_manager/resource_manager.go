@@ -28,3 +28,9 @@ func (rm *ResourceManager) Has() int {
 func (rm *ResourceManager) Remain() int {
 	return cap(rm.ch) - len(rm.ch)
 }
+
+func (rm *ResourceManager) FillToTheFull() {
+	for i := 0; i < rm.Cap(); i++ {
+		rm.ch <- 1
+	}
+}

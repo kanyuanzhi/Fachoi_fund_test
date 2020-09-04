@@ -10,3 +10,9 @@ func TruncateTable(tableName string, db *sql.DB) {
 	_, err := db.Exec(sqlStr)
 	CheckError(err, "TruncateTable")
 }
+
+//func CheckTableExist(tableName string, db *sql.DB) bool{
+//	sqlStr := "TRUNCATE TABLE " + tableName
+//	_, err := db.Exec(sqlStr)
+//	CheckError(err, "TruncateTable")
+//}
