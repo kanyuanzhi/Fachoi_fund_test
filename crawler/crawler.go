@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
-	"time"
 )
 
 type Crawler struct {
@@ -25,7 +24,7 @@ func NewCrawler() *Crawler {
 func (c *Crawler) Crawl(url string) *http.Response {
 	key := md5.Sum([]byte(url))
 
-	client := &http.Client{Timeout: time.Second * 4}
+	client := &http.Client{}
 	if client == nil {
 		return nil
 	}

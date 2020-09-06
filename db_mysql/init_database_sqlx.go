@@ -5,12 +5,13 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
 	"log"
 	"time"
 )
 
 type MysqlDB struct {
-	db *sql.DB // 数据库连接池
+	db *sqlx.DB // 数据库连接池
 }
 
 func NewMysql() *MysqlDB {
@@ -25,8 +26,9 @@ func (m *MysqlDB) InitDatabase() {
 }
 
 // 获取连接
-func (m *MysqlDB) GetDB() *sql.DB {
+func (m *MysqlDB) GetDB() *sqlx.DB {
 	if m.db == nil {
+		fmt.Println("createConnection")
 		m.db = createConnection()
 	}
 	return m.db
@@ -46,18 +48,18 @@ func createDatabase() {
 	_mysqlDb.Close()
 }
 
-func createConnection() *sql.DB {
+func createConnection() *sqlx.DB {
 	user, pass, host, port, dbname, charset := util.GetDBConfig()
 	dbDSN := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=%s", user, pass, host, port, dbname, charset)
-	db, err := sql.Open("mysql", dbDSN)
+	db, err := sqlx.Connect("mysql", dbDSN)
 	if err != nil {
 		log.Println("dbDSN: " + dbDSN)
 		panic("数据源配置不正确: " + err.Error())
 	}
 	// 最大连接数
-	db.SetMaxOpenConns(100)
+	db.SetMaxOpenConns(500)
 	// 闲置连接数
-	db.SetMaxIdleConns(5)
+	db.SetMaxIdleConns(50)
 	// 最大连接周期
 	db.SetConnMaxLifetime(2 * time.Minute)
 
@@ -67,12 +69,12 @@ func createConnection() *sql.DB {
 	return db
 }
 
-func createTables(db *sql.DB) {
+func createTables(db *sqlx.DB) {
 	createFundListTable(db)
 	createFundInfoTable(db)
 }
 
-func createFundListTable(db *sql.DB) {
+func createFundListTable(db *sqlx.DB) {
 	sqlStr := "CREATE TABLE IF NOT EXISTS fund_list_table (" +
 		"id INT AUTO_INCREMENT, " +
 		"fund_code VARCHAR(10), " +
@@ -83,7 +85,7 @@ func createFundListTable(db *sql.DB) {
 	util.CheckError(err, "createFundListTable")
 }
 
-func createFundInfoTable(db *sql.DB) {
+func createFundInfoTable(db *sqlx.DB) {
 	sqlStr := "CREATE TABLE IF NOT EXISTS fund_info_table (" +
 		"id INT AUTO_INCREMENT PRIMARY KEY," +
 		"fund_code_front_end CHAR(6)," +
@@ -102,23 +104,6 @@ func createFundInfoTable(db *sql.DB) {
 		"fund_dividend_payment_per_unit FLOAT," +
 		"fund_dividend_count INT," +
 		"fund_trade_state VARCHAR(50)" +
-		")"
-	_, err := db.Exec(sqlStr)
-	util.CheckError(err, "createFundInfoTable")
-}
-
-// 不在InitDatabase()中调用，在存储基金历史数据中调用
-func CreateFundHistoryTable(db *sql.DB, code string) {
-	tableName := "history_" + code + "_table"
-	sqlStr := "CREATE TABLE IF NOT EXISTS " + tableName + " (" +
-		"id INT auto_increment," +
-		"date BIGINT," +
-		"date_string VARCHAR(50)," +
-		"net_asset_value FLOAT, " +
-		"accumulated_net_asset_value FLOAT, " +
-		"earnings_per_10000 FLOAT, " +
-		"7_day_annual_return FLOAT, " +
-		"PRIMARY KEY (id)" +
 		")"
 	_, err := db.Exec(sqlStr)
 	util.CheckError(err, "createFundInfoTable")

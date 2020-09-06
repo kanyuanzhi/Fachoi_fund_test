@@ -1,46 +1,37 @@
 package spider
 
 import (
-	"Fachoi_fund_test2/db_model"
 	"Fachoi_fund_test2/parser"
 	"Fachoi_fund_test2/saver"
-	"database/sql"
 	"fmt"
-	"time"
+	"github.com/jmoiron/sqlx"
 )
 
 type FundListSpider struct {
 	*Spider
-	parser   *parser.FundListParser
-	saver    *saver.FundListSaver
-	dataChan chan []db_model.FundListModel
+	parser *parser.FundListParser
+	saver  *saver.FundListSaver
 }
 
-func NewFundListSpider(db *sql.DB) *FundListSpider {
+func NewFundListSpider(db *sqlx.DB) *FundListSpider {
 	fls := new(FundListSpider)
 	fls.Spider = NewSpider(1)
 	fls.parser = parser.NewFundListParser()
 	fls.saver = saver.NewFundListSaver(db)
-	fls.dataChan = make(chan []db_model.FundListModel, 10)
 	return fls
 }
 
 func (fls *FundListSpider) Run() {
 	for {
 		url, ok := fls.scheduler.Pop()
-		if ok == false && len(fls.dataChan) == 1 {
-			fmt.Println("基金列表爬取完毕！等待存储完毕......")
+		if ok == false {
 			break
-		} else if ok == false {
-			time.Sleep(time.Second)
-			continue
 		}
 		fls.process(url)
 	}
-	fls.saver.Save(<-fls.dataChan)
-	close(fls.dataChan)
-	fmt.Println("基金列表存储完毕!")
-
+	codes := fls.GetFrontFundCodes()
+	fmt.Printf("基金列表爬取完毕！共爬取%d个基金，其中前端基金%d个。\n", fls.urlsNum, len(codes))
+	//util.CreateAllFundHistoryTables(fls.db, codes)
 }
 
 func (fls *FundListSpider) process(url string) {
@@ -51,7 +42,8 @@ func (fls *FundListSpider) process(url string) {
 		}
 		return
 	}
-	fls.dataChan <- fls.parser.Parse(resp)
+	parsedResp := fls.parser.Parse(resp)
+	fls.saver.Save(parsedResp)
 }
 
 // 获取所有前端基金代号（后端基金跳过）

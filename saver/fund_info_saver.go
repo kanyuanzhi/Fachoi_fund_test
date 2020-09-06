@@ -3,14 +3,14 @@ package saver
 import (
 	"Fachoi_fund_test2/db_model"
 	"Fachoi_fund_test2/util"
-	"database/sql"
+	"github.com/jmoiron/sqlx"
 )
 
 type FundInfoSaver struct {
-	db *sql.DB
+	db *sqlx.DB
 }
 
-func NewFundInfoSaver(db *sql.DB) *FundInfoSaver {
+func NewFundInfoSaver(db *sqlx.DB) *FundInfoSaver {
 	util.TruncateTable("fund_info_table", db)
 	return &FundInfoSaver{
 		db: db,

@@ -19,18 +19,11 @@ func NewFundHistoryParser() *FundHistoryParser {
 
 func (flp *FundHistoryParser) Parse(resp *http.Response) []db_model.FundHistoryModel {
 	defer resp.Body.Close()
-	//t1 := time.Now().Unix()
-	// 此步骤很耗时，长达4s
 	bodyBytes, _ := ioutil.ReadAll(resp.Body)
-	//bodyBytes, _ := io.Copy(resp.Body)
-	//t2 := time.Now().Unix()
-	//fmt.Println(t2 - t1)
 	bodyStr := string(bodyBytes)
 	bodyStr = strings.ReplaceAll(bodyStr, "jQuery183019601346852042933_1596811572354(", "")
 	bodyStr = strings.ReplaceAll(bodyStr, ")", "")
 
-	//flag := gjson.Get(bodyStr, "Data.SYType")
-	//fmt.Println(flag)
 	// 基金历史数据包括两种格式，一种为单位净值+累计净值，一种为每万份收益+7日年化收益率
 	var isValueFlag bool
 	if gjson.Get(bodyStr, "Data.SYType").Raw == "null" {
@@ -46,7 +39,7 @@ func (flp *FundHistoryParser) Parse(resp *http.Response) []db_model.FundHistoryM
 	var fhms []db_model.FundHistoryModel
 
 	for _, item := range historyDataArray {
-		// strings.Split(historyData.Raw, "},{")时去除了原item中的{}符号，此处加上以供gjson读取（添加左侧{即可）
+		// strings.Split(historyData.Raw, "},{")时祛除了原item中的{}符号，此处加上以供gjson读取（添加左侧{即可）
 		item = "{" + item
 		fhm := db_model.FundHistoryModel{}
 		tm, _ := time.Parse("2006-01-02", gjson.Get(item, "FSRQ").Str)
