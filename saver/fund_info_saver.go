@@ -7,13 +7,12 @@ import (
 )
 
 type FundInfoSaver struct {
-	db *sqlx.DB
+	DB *sqlx.DB
 }
 
 func NewFundInfoSaver(db *sqlx.DB) *FundInfoSaver {
-	util.TruncateTable("fund_info_table", db)
 	return &FundInfoSaver{
-		db: db,
+		DB: db,
 	}
 }
 
@@ -23,7 +22,7 @@ func (fis *FundInfoSaver) Save(fim db_model.FundInfoModel) {
 		"fund_issue_date, fund_issue_date_string, fund_launch_date, fund_launch_date_string, " +
 		"fund_asset_size, fund_company, fund_trustee, fund_manager, " +
 		"fund_dividend_payment_per_unit, fund_dividend_count, fund_trade_state) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
-	smtp, err := fis.db.Prepare(sqlStr)
+	smtp, err := fis.DB.Prepare(sqlStr)
 	util.CheckError(err, "FundInfoSaver Save mysqlDB.Prepare")
 	_, err = smtp.Exec(fim.CodeFront, fim.CodeBack, fim.FullName, fim.ShortName, fim.FundType,
 		fim.IssueDate, fim.IssueDateString, fim.LaunchDate, fim.LaunchDateString,

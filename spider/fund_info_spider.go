@@ -25,10 +25,11 @@ func NewFundInfoSpider(db *sqlx.DB, threadsNum int) *FundInfoSpider {
 
 func (fis *FundInfoSpider) Run() {
 	crm := resource_manager.NewResourceManager(fis.threadsNum)
+	//util.TruncateTable("fund_info_table", fis.saver.DB)
 	for {
 		url, ok := fis.scheduler.Pop()
 		if ok == false && crm.Has() == 0 {
-			fmt.Println("基金信息爬取完毕！")
+			fmt.Println("基金信息爬取存储完毕！")
 			break
 		} else if ok == false {
 			time.Sleep(time.Second)

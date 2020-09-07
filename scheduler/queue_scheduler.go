@@ -52,6 +52,6 @@ func (qs *QueueScheduler) Push(url string) {
 	qs.locker.Unlock()
 }
 
-func (qs *QueueScheduler) getUrlsNum(url string) int {
-	return len(qs.listKey)
-}
+//func (qs *QueueScheduler) getUrlsNum(url string) int {
+//	return len(qs.listKey)
+//}

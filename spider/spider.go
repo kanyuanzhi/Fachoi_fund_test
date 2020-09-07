@@ -15,9 +15,9 @@ type Spider struct {
 	//saveCount          chan int                  // 存储进度统计
 	//responseChan       chan interface{}          // http响应管道，用以将爬取器爬到的内容交给解析器解析
 	//parsedResponseChan chan interface{}          // 经过解析的响应管道，用以将解析器解析后的内容交给存储器存储，每个Spider子类有不同格式的解析
-	parser interface{} // 解析器，由继承类确定类型
-	saver  interface{} // 存储器，由继承类确定类型
-
+	parser  interface{} // 解析器，由继承类确定类型
+	saver   interface{} // 存储器，由继承类确定类型
+	updater interface{}
 }
 
 func NewSpider(threadsNum int) *Spider {

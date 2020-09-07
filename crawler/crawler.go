@@ -23,7 +23,6 @@ func NewCrawler() *Crawler {
 
 func (c *Crawler) Crawl(url string) *http.Response {
 	key := md5.Sum([]byte(url))
-
 	client := &http.Client{}
 	if client == nil {
 		return nil

@@ -9,13 +9,12 @@ import (
 )
 
 type FundListSaver struct {
-	db *sqlx.DB
+	DB *sqlx.DB
 }
 
 func NewFundListSaver(db *sqlx.DB) *FundListSaver {
-	util.TruncateTable("fund_list_table", db)
 	return &FundListSaver{
-		db: db,
+		DB: db,
 	}
 }
 
@@ -31,6 +30,6 @@ func (fls *FundListSaver) Save(flms []db_model.FundListModel) {
 	}
 	sqlStr := fmt.Sprintf("INSERT INTO fund_list_table(fund_code, fund_short_name, fund_type) VALUES %s",
 		strings.Join(valueStrings, ","))
-	_, err := fls.db.Exec(sqlStr, valueArgs...)
+	_, err := fls.DB.Exec(sqlStr, valueArgs...)
 	util.CheckError(err, "FundListSaver")
 }

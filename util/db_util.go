@@ -5,6 +5,7 @@ import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
+	"strings"
 )
 
 func TruncateTable(tableName string, db *sqlx.DB) {
@@ -51,4 +52,45 @@ func CreateAllFundHistoryTables(db *sqlx.DB, codes []string) {
 //	sqlStr := "TRUNCATE TABLE " + tableName
 //	_, err := db.Exec(sqlStr)
 //	CheckError(err, "TruncateTable")
+//}
+
+func EvictExceptionData(db *sqlx.DB) {
+	sqlStr := "SELECT table_name FROM information_schema.TABLES"
+	rows, _ := db.Query(sqlStr)
+	var tableName string
+	var tableNames []string
+
+	for rows.Next() {
+		rows.Scan(&tableName)
+		if strings.Contains(tableName, "history") {
+			tableNames = append(tableNames, tableName)
+		}
+	}
+	rows.Close()
+
+	erm := resource_manager.NewResourceManager(20)
+	for _, tableName := range tableNames {
+		erm.GetOne()
+		go func(tableName string) {
+			defer erm.FreeOne()
+			var latestDate int64
+			sqlStr = "select `date` from " + tableName + " order by id desc limit 1"
+			rows2, _ := db.Query(sqlStr)
+			for rows2.Next() {
+				rows2.Scan(&latestDate)
+				if latestDate < 0 {
+					TruncateTable(tableName, db)
+					fmt.Println(tableName)
+				}
+			}
+			rows2.Close()
+		}(tableName)
+		if erm.Has() == 0 {
+			return
+		}
+	}
+}
+
+//func InitCheck(db *sqlx.DB) bool{
+//	sqlStr := "select table_rows from information_schema.tables where table_name=fund_list_table"
 //}
