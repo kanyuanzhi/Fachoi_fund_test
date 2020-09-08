@@ -17,7 +17,7 @@ type Spider struct {
 	//parsedResponseChan chan interface{}          // 经过解析的响应管道，用以将解析器解析后的内容交给存储器存储，每个Spider子类有不同格式的解析
 	parser  interface{} // 解析器，由继承类确定类型
 	saver   interface{} // 存储器，由继承类确定类型
-	updater interface{}
+	updater interface{} // 更新器
 }
 
 func NewSpider(threadsNum int) *Spider {
@@ -46,44 +46,3 @@ func (s *Spider) AddUrls(urls []string) {
 		s.scheduler.Push(url)
 	}
 }
-
-//func Run(s *FundInfoSpider) {
-//	rm := resource_manager.NewResourceManager(s.threadsNum)
-//	for {
-//		url, ok := s.scheduler.Pop()
-//		if ok == false && rm.Has() == 0 {
-//			fmt.Println("url爬取完毕")
-//			break
-//		} else if ok == false {
-//			time.Sleep(time.Second)
-//			continue
-//		}
-//		rm.GetOne()
-//		go func(url string) {
-//			defer rm.FreeOne()
-//			s.process(url)
-//		}(url)
-//	}
-//}
-
-//func (s *Spider) Run() {
-//	rm := NewResourceManagerChan(s.threadsNum)
-//	for {
-//		url, ok := s.scheduler.Pop()
-//		if ok == false && rm.Has() == 0 {
-//			fmt.Println("url爬取完毕")
-//			break
-//		} else if ok == false {
-//			time.Sleep(time.Second)
-//			continue
-//		}
-//		rm.GetOne()
-//		go func(url string) {
-//			defer rm.FreeOne()
-//			s.Process(url)
-//		}(url)
-//	}
-//}
-//
-//func (s *Spider) Process(url string) {
-//}

@@ -91,6 +91,17 @@ func EvictExceptionData(db *sqlx.DB) {
 	}
 }
 
-//func InitCheck(db *sqlx.DB) bool{
-//	sqlStr := "select table_rows from information_schema.tables where table_name=fund_list_table"
-//}
+func InitializedCheck(db *sqlx.DB) bool {
+	sqlStr := "select id from fund_list_table limit 1"
+	var id int
+	rows, _ := db.Query(sqlStr)
+	for rows.Next() {
+		rows.Scan(&id)
+	}
+	rows.Close()
+	if id != 0 {
+		return true
+	} else {
+		return false
+	}
+}
