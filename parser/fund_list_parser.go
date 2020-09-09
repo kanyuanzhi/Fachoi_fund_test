@@ -1,7 +1,7 @@
 package parser
 
 import (
-	"Fachoi_fund_test2/db_model"
+	"Fachoi_fund_test/db_model"
 	"io/ioutil"
 	"net/http"
 	"strings"

@@ -1,8 +1,8 @@
 package update_checker
 
 import (
-	"Fachoi_fund_test2/db_model"
-	"Fachoi_fund_test2/util"
+	"Fachoi_fund_test/db_model"
+	"Fachoi_fund_test/util"
 	"github.com/jmoiron/sqlx"
 )
 

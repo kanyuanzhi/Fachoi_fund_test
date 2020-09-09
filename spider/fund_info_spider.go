@@ -1,9 +1,9 @@
 package spider
 
 import (
-	"Fachoi_fund_test2/parser"
-	"Fachoi_fund_test2/resource_manager"
-	"Fachoi_fund_test2/saver"
+	"Fachoi_fund_test/parser"
+	"Fachoi_fund_test/resource_manager"
+	"Fachoi_fund_test/saver"
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"time"
@@ -59,4 +59,8 @@ func (fis *FundInfoSpider) process(url string) {
 		fis.crawlCount <- 1
 		fmt.Printf("爬取进度：%d / %d \n", len(fis.crawlCount), fis.urlsNum)
 	}
+}
+
+func (fis *FundInfoSpider) Update() {
+	fis.Run()
 }

@@ -1,6 +1,9 @@
 package timer
 
-import "Fachoi_fund_test2/util"
+import (
+	"Fachoi_fund_test/util"
+	"time"
+)
 
 type Timer struct {
 	funcChan   chan *func()
@@ -24,6 +27,21 @@ func (t *Timer) AddDayJob(f func(), hour int, min int, sec int) {
 		min,
 		sec,
 		0,
+		0,
+	}
+	t.funcToInfo[&f] = funcInfo
+}
+
+// 添加每月固定日运行的任务
+func (t *Timer) AddMonthJob(f func(), date int) {
+	t.funcChan <- &f
+	funcInfo := &FuncInfo{
+		"month",
+		0,
+		0,
+		0,
+		0,
+		date,
 	}
 	t.funcToInfo[&f] = funcInfo
 }
@@ -37,20 +55,27 @@ func (t *Timer) AddIntervalJob(f func(), interval int) {
 		0,
 		0,
 		interval,
+		0,
 	}
 	t.funcToInfo[&f] = funcInfo
 }
 
 func (t *Timer) Run() {
 	for f := range t.funcChan {
-		if t.funcToInfo[f].jobType == "day" {
+		switch t.funcToInfo[f].jobType {
+		case "day":
 			go util.StartTimerByDay(*f, t.funcToInfo[f].hour, t.funcToInfo[f].min, t.funcToInfo[f].sec)
-		} else if t.funcToInfo[f].jobType == "interval" {
+		case "month":
+			go util.StartTimerByMonth(*f, t.funcToInfo[f].date)
+		case "interval":
 			go util.StartTimerByInterval(*f, t.funcToInfo[f].interval)
+		default:
+			continue
 		}
 	}
 	close(t.funcChan)
 	for {
+		time.Sleep(time.Hour * 24)
 	}
 }
 
@@ -60,4 +85,5 @@ type FuncInfo struct {
 	min      int
 	sec      int
 	interval int //单位秒
+	date     int //单位日
 }

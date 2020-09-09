@@ -1,8 +1,8 @@
 package spider
 
 import (
-	"Fachoi_fund_test2/crawler"
-	"Fachoi_fund_test2/scheduler"
+	"Fachoi_fund_test/crawler"
+	"Fachoi_fund_test/scheduler"
 )
 
 type Spider struct {

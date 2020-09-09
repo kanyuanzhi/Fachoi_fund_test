@@ -1,7 +1,7 @@
 package util
 
 import (
-	"Fachoi_fund_test2/resource_manager"
+	"Fachoi_fund_test/resource_manager"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"

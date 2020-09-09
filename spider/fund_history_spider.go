@@ -1,10 +1,10 @@
 package spider
 
 import (
-	"Fachoi_fund_test2/parser"
-	"Fachoi_fund_test2/resource_manager"
-	"Fachoi_fund_test2/saver"
-	"Fachoi_fund_test2/update_checker"
+	"Fachoi_fund_test/parser"
+	"Fachoi_fund_test/resource_manager"
+	"Fachoi_fund_test/saver"
+	"Fachoi_fund_test/update_checker"
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"regexp"

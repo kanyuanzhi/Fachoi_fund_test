@@ -1,4 +1,4 @@
-module Fachoi_fund_test2
+module Fachoi_fund_test
 
 go 1.15
 

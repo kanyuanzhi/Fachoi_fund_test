@@ -1,12 +1,13 @@
 package main
 
 import (
-	"Fachoi_fund_test2/db_mysql"
-	"Fachoi_fund_test2/spider"
-	"Fachoi_fund_test2/timer"
-	"Fachoi_fund_test2/util"
+	"Fachoi_fund_test/db_mysql"
+	"Fachoi_fund_test/spider"
+	"Fachoi_fund_test/timer"
+	"Fachoi_fund_test/util"
 	"fmt"
 	"github.com/jmoiron/sqlx"
+	"time"
 )
 
 // 换机运行前为避免数据库冲突，请在mysql_config.yaml文件中重新命名数据库
@@ -20,11 +21,14 @@ func main() {
 		initializeAllTables(db)
 	}
 
-	update()
+	//update()
+	//updateFundInfo()
 	t := timer.NewTimer(10)
 	t.AddDayJob(update, 19, 0, 0)
 	t.AddDayJob(update, 20, 0, 0)
 	t.AddDayJob(update, 21, 0, 0)
+	t.AddMonthJob(updateFundInfo, 1)
+	t.AddIntervalJob(printTime, 3600)
 	t.Run()
 }
 
@@ -37,7 +41,7 @@ func initializeAllTables(db *sqlx.DB) {
 	fls.AddUrl(url)
 	fls.Run()
 
-	//初始化基金信息表
+	// 初始化基金信息表
 	frontFundCodes := fls.GetFrontFundCodes()
 
 	var infoUrls, historyUrls []string
@@ -54,7 +58,7 @@ func initializeAllTables(db *sqlx.DB) {
 	fis.AddUrls(infoUrls)
 	fis.Run()
 
-	//初始化基金历史数据表（运行较慢）
+	// 初始化基金历史数据表（运行较慢）
 	fhs := spider.NewFundHistorySpider(db, 5) // 此处并发数不能过大，否则数据存储有异常（与mysql所在服务器性能有关）
 	fhs.AddUrls(historyUrls)
 	fhs.Run()
@@ -80,7 +84,7 @@ func update() {
 	}
 	fis := spider.NewFundInfoSpider(db, 20)
 	fis.AddUrls(infoUrls)
-	fis.Run()
+	fis.Update()
 
 	for _, code := range frontFundCodes {
 		historyUrl = fmt.Sprintf("http://api.fund.eastmoney.com/f10/lsjz?callback=jQuery18307693431530679145_1599054971353"+
@@ -90,4 +94,32 @@ func update() {
 	fhs := spider.NewFundHistorySpider(db, 20)
 	fhs.AddUrls(historyUrls)
 	fhs.Update()
+}
+
+// 更新基金信息表
+func updateFundInfo() {
+	mysqlDB := db_mysql.NewMysql()
+	db := mysqlDB.GetDB()
+	url := "http://fund.eastmoney.com/js/fundcode_search.js"
+	fls := spider.NewFundListSpider(db)
+	fls.AddUrl(url)
+	fls.Update()
+
+	frontFundCodes := fls.GetFrontFundCodes()
+	var infoUrls []string
+	var infoUrl string
+	for _, code := range frontFundCodes {
+		infoUrl = fmt.Sprintf("http://fundf10.eastmoney.com/jbgk_%s.html", code)
+		infoUrls = append(infoUrls, infoUrl)
+	}
+	// 清空后重新爬取
+	util.TruncateTable("fund_info_table", db)
+
+	fis := spider.NewFundInfoSpider(db, 20)
+	fis.AddUrls(infoUrls)
+	fis.Run()
+}
+
+func printTime() {
+	fmt.Println(time.Now())
 }

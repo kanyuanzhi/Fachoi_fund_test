@@ -1,7 +1,7 @@
 package db_mysql
 
 import (
-	"Fachoi_fund_test2/util"
+	"Fachoi_fund_test/util"
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
