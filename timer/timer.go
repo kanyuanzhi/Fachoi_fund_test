@@ -64,11 +64,11 @@ func (t *Timer) Run() {
 	for f := range t.funcChan {
 		switch t.funcToInfo[f].jobType {
 		case "day":
-			go util.StartTimerByDay(*f, t.funcToInfo[f].hour, t.funcToInfo[f].min, t.funcToInfo[f].sec)
+			util.StartTimerByDay(*f, t.funcToInfo[f].hour, t.funcToInfo[f].min, t.funcToInfo[f].sec)
 		case "month":
-			go util.StartTimerByMonth(*f, t.funcToInfo[f].date)
+			util.StartTimerByMonth(*f, t.funcToInfo[f].date)
 		case "interval":
-			go util.StartTimerByInterval(*f, t.funcToInfo[f].interval)
+			util.StartTimerByInterval(*f, t.funcToInfo[f].interval)
 		default:
 			continue
 		}

@@ -123,3 +123,13 @@ func updateFundInfo() {
 func printTime() {
 	fmt.Println(time.Now())
 }
+
+func test1() {
+	fmt.Println("test1")
+}
+func test2() {
+	fmt.Println("test2")
+}
+func test3() {
+	fmt.Println("test3")
+}

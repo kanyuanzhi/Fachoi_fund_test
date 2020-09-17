@@ -7,7 +7,7 @@ type FundHistoryModel struct {
 	Value            float32 `db:net_asset_value`
 	AccumulatedValue float32 `db:accumulated_net_asset_value`
 	Earnings         float32 `db:earnings_per_10000`
-	AnnualReturn     float32 `dn:7_day_annual_return`
+	AnnualReturn     float32 `db:7_day_annual_return`
 }
 
 type FundHistoryModelAndCode struct {
